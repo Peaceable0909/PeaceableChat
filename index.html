@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peaceable — AI Workspace</title>
+<meta name="description" content="A multi-model AI workspace: chat, files, projects, memory and artifacts, powered by open models.">
+<meta name="theme-color" content="#d97757">
+<script>
+window.onerror=function(msg,src,line,col,err){window.parent.postMessage({type:'app-error',message:msg,source:src,lineno:line,colno:col,stack:err&&err.stack||''},'*');};
+window.onunhandledrejection=function(e){window.parent.postMessage({type:'app-error',message:'Unhandled promise rejection: '+(e.reason&&e.reason.message||e.reason||'unknown'),stack:e.reason&&e.reason.stack||''},'*');};
+window.addEventListener('error',function(e){var t=e&&e.target;if(t&&t!==window&&t.tagName==='SCRIPT'){var u=t.src||'';window.parent.postMessage({type:'app-error',message:'Failed to load script'+(u?': '+u:' (inline module)'),source:u},'*');}},true);
+(function(){var _f=window.fetch;window.fetch=function(){var a=arguments,u=typeof a[0]==='string'?a[0]:(a[0]&&a[0].url)||'';var p=_f.apply(this,a);p.then(function(r){if(r.status===500){r.clone().text().then(function(b){window.parent.postMessage({type:'fetch-error',url:u,status:500,body:b},'*');}).catch(function(){window.parent.postMessage({type:'fetch-error',url:u,status:500,body:''},'*');});}}).catch(function(e){window.parent.postMessage({type:'fetch-error',url:u,status:0,body:e.message||'fetch failed'},'*');});return p;};})();
+</script>
+<script src="https://builder.puter.com/runtime.js" defer></script>
+<script src="https://js.puter.com/v2/"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          serif: ['Newsreader', 'Georgia', 'serif']
+        },
+        colors: {
+          clay: { DEFAULT: '#d97757', dark: '#c2603f', soft: '#f5e7e0' },
+          bone: { DEFAULT: '#faf9f5', deep: '#f0eee6', line: '#e6e4da' },
+          ink: { DEFAULT: '#141413', soft: '#5d5c56', mute: '#8b8a81' }
+        }
+      }
+    }
+  }
+</script>
+    <!-- puter-pwa: generated, do not edit -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Peaceable">
+    <!-- /puter-pwa -->
+</head>
+<body class="h-full bg-bone text-ink antialiased">
+
+<div id="app" class="h-full flex overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-[272px] shrink-0 bg-bone-deep flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-200">
+    <div class="h-14 flex items-center gap-2 px-4 shrink-0">
+      <span class="text-clay"><svg viewBox="0 0 24 24" class="w-5 h-5"><use href="#burst"/></svg></span>
+      <span class="font-serif text-[19px] tracking-tight text-ink">Peaceable</span>
+      <button id="closeSidebar" class="ml-auto lg:hidden p-1.5 rounded-md hover:bg-black/5 text-ink-soft">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="px-3 pb-2 shrink-0 flex gap-1.5">
+      <button id="newChatBtn" class="flex-1 h-9 rounded-lg bg-clay text-white text-[13.5px] font-medium flex items-center justify-center gap-1.5 hover:bg-clay-dark transition-colors">
+        <i data-lucide="plus" class="w-4 h-4"></i> New chat
+      </button>
+      <button id="newProjectBtn" title="New project" class="h-9 w-9 shrink-0 rounded-lg border border-bone-line bg-white text-ink-soft hover:bg-black/5 flex items-center justify-center">
+        <i data-lucide="folder-plus" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="px-3 pb-2 shrink-0">
+      <div class="relative">
+        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-mute"></i>
+        <input id="convSearch" type="text" placeholder="Search chats & projects"
+          class="w-full h-8 pl-7 pr-2 rounded-lg bg-white border border-bone-line text-[12.5px] placeholder:text-ink-mute focus:outline-none focus:border-clay/50">
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-2 pb-3">
+      <div id="projectSection">
+        <div class="px-2.5 pt-2 pb-1.5 text-[11.5px] font-medium text-ink-mute">Projects</div>
+        <div id="projectList" class="space-y-px mb-2"></div>
+      </div>
+      <div class="px-2.5 pt-2 pb-1.5 text-[11.5px] font-medium text-ink-mute">Recents</div>
+      <div id="convList" class="space-y-px"></div>
+    </div>
+
+    <div class="p-2.5 border-t border-black/5 shrink-0">
+      <div class="flex items-center gap-2.5 px-1.5 py-1">
+        <div class="w-7 h-7 rounded-full bg-clay text-white flex items-center justify-center text-[12px] font-semibold shrink-0" id="avatar">?</div>
+        <div class="min-w-0 flex-1">
+          <div id="userName" class="text-[13px] font-medium truncate text-ink">Signed out</div>
+          <div class="text-[11px] text-ink-mute">Free plan · client-only</div>
+        </div>
+        <button id="settingsBtn" class="p-1.5 rounded-md hover:bg-black/5 text-ink-mute" title="Settings">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+        <button id="signOutBtn" class="hidden p-1.5 rounded-md hover:bg-black/5 text-ink-mute" title="Sign out">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div id="overlay" class="hidden fixed inset-0 bg-black/20 z-30 lg:hidden"></div>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col min-w-0 bg-bone">
+    <header class="h-14 shrink-0 flex items-center gap-2 px-3 sm:px-4 border-b border-transparent">
+      <button id="openSidebar" class="lg:hidden p-1.5 -ml-1 rounded-md hover:bg-black/5 text-ink-soft">
+        <i data-lucide="panel-left" class="w-5 h-5"></i>
+      </button>
+      <div class="min-w-0">
+        <h1 id="convTitle" class="text-[13.5px] text-ink-soft truncate max-w-[38vw]">New chat</h1>
+        <div id="projectBadge" class="hidden text-[11px] text-clay-dark truncate max-w-[38vw]"></div>
+      </div>
+      <div class="ml-auto flex items-center gap-1.5">
+        <div class="relative hidden sm:block">
+          <select id="modeSelect" title="Routing mode" class="appearance-none h-8 pl-2.5 pr-6 rounded-lg bg-transparent text-[12.5px] text-ink-soft hover:bg-black/5 focus:outline-none cursor-pointer">
+            <option value="auto">Auto</option>
+            <option value="fast">Fast</option>
+            <option value="smart">Smart</option>
+            <option value="reasoning">Reasoning</option>
+            <option value="coding">Coding</option>
+            <option value="vision">Vision</option>
+          </select>
+          <i data-lucide="chevron-down" class="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 text-ink-mute pointer-events-none"></i>
+        </div>
+        <div class="relative">
+          <select id="modelSelect" title="Model" class="appearance-none h-8 pl-2.5 pr-7 rounded-lg bg-transparent text-[13px] text-ink-soft hover:bg-black/5 focus:outline-none cursor-pointer max-w-[38vw]">
+            <option value="">Auto-picked</option>
+          </select>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 text-ink-mute pointer-events-none"></i>
+        </div>
+        <button id="workspaceBtn" class="p-2 rounded-lg text-ink-mute hover:bg-black/5 hover:text-ink-soft" title="Workspace / artifacts">
+          <i data-lucide="layout-panel-right" class="w-4 h-4"></i>
+        </button>
+        <button id="deleteConvBtn" class="p-2 rounded-lg text-ink-mute hover:bg-black/5 hover:text-ink-soft" title="Delete chat">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 min-h-0 flex">
+      <div class="flex-1 min-w-0 flex flex-col">
+        <!-- Sign-in gate -->
+        <section id="authGate" class="hidden flex-1 items-center justify-center p-6">
+          <div class="max-w-sm w-full text-center">
+            <span class="text-clay inline-block"><svg viewBox="0 0 24 24" class="w-9 h-9"><use href="#burst"/></svg></span>
+            <h2 class="font-serif text-[27px] leading-tight mt-4">Welcome back</h2>
+            <p class="text-[14px] text-ink-soft mt-2 leading-relaxed">Sign in to pick up where you left off — your chats are saved privately to your account.</p>
+            <button id="signInBtn" class="mt-6 h-10 px-6 rounded-lg bg-clay text-white text-sm font-medium hover:bg-clay-dark transition-colors">Sign in with Puter</button>
+          </div>
+        </section>
+
+        <!-- Chat -->
+        <section id="chatPane" class="hidden flex-1 flex-col min-h-0">
+          <div id="messages" class="flex-1 overflow-y-auto">
+            <div id="messagesInner" class="max-w-[46rem] mx-auto w-full px-5 py-6 space-y-7"></div>
+          </div>
+
+          <div class="shrink-0">
+            <div class="max-w-[46rem] mx-auto w-full px-5 pb-3">
+              <div id="fileChips" class="hidden flex-wrap gap-1.5 mb-1.5"></div>
+              <div id="composer" class="rounded-2xl border border-bone-line bg-white px-3 pt-2.5 pb-2 transition focus-within:border-clay/50">
+                <textarea id="input" rows="1" placeholder="How can I help you today?" class="w-full resize-none bg-transparent text-[15px] leading-6 placeholder:text-ink-mute focus:outline-none max-h-44 px-1"></textarea>
+                <div class="flex items-center gap-1 pt-1.5">
+                  <input id="fileInput" type="file" multiple class="hidden">
+                  <button id="attachBtn" class="w-8 h-8 rounded-lg text-ink-mute hover:bg-black/5 hover:text-ink-soft flex items-center justify-center" title="Attach files">
+                    <i data-lucide="paperclip" class="w-4 h-4"></i>
+                  </button>
+                  <button id="webSearchToggle" class="h-8 px-2 rounded-lg text-ink-mute hover:bg-black/5 hover:text-ink-soft flex items-center gap-1 text-[12px]" title="Toggle web search for this message">
+                    <i data-lucide="globe" class="w-4 h-4"></i><span class="hidden sm:inline">Search</span>
+                  </button>
+                  <button id="micBtn" class="w-8 h-8 rounded-lg text-ink-mute hover:bg-black/5 hover:text-ink-soft flex items-center justify-center" title="Voice input">
+                    <i data-lucide="mic" class="w-4 h-4"></i>
+                  </button>
+                  <span class="text-[11.5px] text-ink-mute pl-1 hidden md:block truncate">Enter to send · Shift+Enter for new line</span>
+                  <div class="ml-auto flex items-center gap-1.5">
+                    <button id="sendBtn" class="w-8 h-8 rounded-lg bg-clay text-white flex items-center justify-center hover:bg-clay-dark disabled:bg-bone-line disabled:text-ink-mute transition-colors" disabled>
+                      <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                    </button>
+                    <button id="stopBtn" class="hidden w-8 h-8 rounded-lg bg-ink text-white flex items-center justify-center hover:bg-ink-soft" title="Stop">
+                      <i data-lucide="square" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Workspace / Artifacts panel -->
+      <aside id="workspace" class="hidden w-full sm:w-[420px] shrink-0 border-l border-bone-line bg-white flex-col fixed sm:static inset-0 z-40">
+        <div class="h-14 shrink-0 flex items-center gap-2 px-4 border-b border-bone-line">
+          <i data-lucide="layout-panel-right" class="w-4 h-4 text-ink-mute"></i>
+          <span class="text-[13.5px] font-medium">Workspace</span>
+          <button id="workspaceCloseBtn" class="ml-auto p-1.5 rounded-md hover:bg-black/5 text-ink-mute"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div id="artifactTabs" class="flex gap-1 px-3 pt-2 overflow-x-auto shrink-0"></div>
+        <div id="artifactBody" class="flex-1 overflow-y-auto p-3">
+          <p class="text-[13px] text-ink-mute p-2">Files the AI creates for you to keep — code, docs, reports — will appear here.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- Settings / Admin modal -->
+<div id="settingsModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/30 p-4">
+  <div class="w-full max-w-2xl max-h-[85vh] bg-white rounded-2xl shadow-xl flex overflow-hidden">
+    <nav class="w-[168px] shrink-0 bg-bone-deep p-2 space-y-0.5 overflow-y-auto">
+      <button data-tab="account" class="settings-tab w-full text-left px-2.5 py-1.5 rounded-lg text-[13px]">Account</button>
+      <button data-tab="ai" class="settings-tab w-full text-left px-2.5 py-1.5 rounded-lg text-[13px]">AI & routing</button>
+      <button data-tab="appearance" class="settings-tab w-full text-left px-2.5 py-1.5 rounded-lg text-[13px]">Appearance</button>
+      <button data-tab="privacy" class="settings-tab w-full text-left px-2.5 py-1.5 rounded-lg text-[13px]">Privacy</button>
+      <button data-tab="tools" class="settings-tab w-full text-left px-2.5 py-1.5 rounded-lg text-[13px]">Tools</button>
+      <button data-tab="memory" class="settings-tab w-full text-left px-2.5 py-1.5 rounded-lg text-[13px]">Memory</button>
+      <button data-tab="models" class="settings-tab w-full text-left px-2.5 py-1.5 rounded-lg text-[13px]">Models</button>
+      <button data-tab="usage" class="settings-tab w-full text-left px-2.5 py-1.5 rounded-lg text-[13px]">Usage</button>
+    </nav>
+    <div class="flex-1 min-w-0 flex flex-col">
+      <div class="h-12 shrink-0 flex items-center px-4 border-b border-bone-line">
+        <span id="settingsTitle" class="text-[13.5px] font-medium">Account</span>
+        <button id="settingsCloseBtn" class="ml-auto p-1.5 rounded-md hover:bg-black/5 text-ink-mute"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div id="settingsBody" class="flex-1 overflow-y-auto p-4 text-[13.5px]"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Memory quick-add / project modal reuse -->
+<div id="promptModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/30 p-4">
+  <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-4">
+    <p id="promptTitle" class="text-[14px] font-medium mb-2">Name this project</p>
+    <input id="promptInput" class="w-full h-9 px-3 rounded-lg border border-bone-line text-[13.5px] focus:outline-none focus:border-clay/50" />
+    <div class="flex justify-end gap-2 mt-3">
+      <button id="promptCancel" class="h-8 px-3 rounded-lg text-[13px] text-ink-soft hover:bg-black/5">Cancel</button>
+      <button id="promptOk" class="h-8 px-3 rounded-lg text-[13px] bg-clay text-white hover:bg-clay-dark">Create</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-lg bg-ink text-white text-sm max-w-[90vw] text-center"></div>
+
+<!-- shared sunburst mark -->
+<svg width="0" height="0" class="hidden" aria-hidden="true">
+  <symbol id="burst" viewBox="0 0 24 24">
+    <g stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+      <line x1="12" y1="2.6" x2="12" y2="21.4"/>
+      <line x1="2.6" y1="12" x2="21.4" y2="12"/>
+      <line x1="5.4" y1="5.4" x2="18.6" y2="18.6"/>
+      <line x1="18.6" y1="5.4" x2="5.4" y2="18.6"/>
+    </g>
+  </symbol>
+</svg>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
